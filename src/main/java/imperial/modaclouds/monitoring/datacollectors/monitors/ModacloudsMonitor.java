@@ -47,6 +47,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
+import com.boc_eu.modaclouds.monitoring.datacollectors.TailerLogFileMonitor;
+
 /**
  * Main class.
  */
@@ -126,6 +128,7 @@ public class ModacloudsMonitor implements Observer {
 		dcIndex.put("detailedCost", 13);
 		dcIndex.put("haproxy", 14);
 		dcIndex.put("appavailability", 15);
+        dcIndex.put ("tailerLogFile", 16);
 
 		monitors = new ArrayList<AbstractMonitor>();
 		runningMonitors = new ArrayList<String>();
@@ -235,6 +238,10 @@ public class ModacloudsMonitor implements Observer {
 				newMonitor = new AppAvailabilityMonitor(Config.getInstance()
 						.getInternalComponentId(), mode);
 				monitors.add(newMonitor);
+                break;
+            case 16:
+                newMonitor = new TailerLogFileMonitor (Config.getInstance ().getVmId (), mode);
+                monitors.add (newMonitor);
 				break;
 			}
 			newMonitor.setDCAgent(dcAgent);
@@ -546,6 +553,7 @@ public class ModacloudsMonitor implements Observer {
 			metricCollectorMapping.put("appavailable", "appavailability");
 			metricCollectorMapping.put("flexi", "flexi");
 			metricCollectorMapping.put("haproxylog", "haproxy");
+            metricCollectorMapping.put ("bpmsmetric", "tailerLogFile");
 		}
 
 		String collector;
