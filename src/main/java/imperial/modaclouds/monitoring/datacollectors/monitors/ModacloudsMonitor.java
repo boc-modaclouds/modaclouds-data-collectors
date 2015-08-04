@@ -128,7 +128,7 @@ public class ModacloudsMonitor implements Observer {
 		dcIndex.put("detailedCost", 13);
 		dcIndex.put("haproxy", 14);
 		dcIndex.put("appavailability", 15);
-        dcIndex.put ("tailerLogFile", 16);
+                dcIndex.put ("tailerLogFile", 16);
 
 		monitors = new ArrayList<AbstractMonitor>();
 		runningMonitors = new ArrayList<String>();
@@ -448,6 +448,7 @@ public class ModacloudsMonitor implements Observer {
 		metrics.add("ResponseInfo");
 		metrics.add("AppAvailable");
 		metrics.add("LogFile");
+		metrics.add("BpmsMetric");
 
 		return metrics;
 	}
@@ -553,7 +554,7 @@ public class ModacloudsMonitor implements Observer {
 			metricCollectorMapping.put("appavailable", "appavailability");
 			metricCollectorMapping.put("flexi", "flexi");
 			metricCollectorMapping.put("haproxylog", "haproxy");
-            metricCollectorMapping.put ("bpmsmetric", "tailerLogFile");
+                        metricCollectorMapping.put ("bpmsmetric", "tailerLogFile");
 		}
 
 		String collector;
