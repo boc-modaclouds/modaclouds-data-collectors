@@ -289,7 +289,7 @@
 	<metric name="BpmsMetric">
 		<requiredParameter defaultValue="10">samplingTime</requiredParameter>
 		<requiredParameter defaultValue="1">samplingProbability</requiredParameter>
-		<requiredParameter defaultValue="C:/Program Files/Apache Software Foundation/Tomcat 7.0/logs">fileName</requiredParameter>
+		<requiredParameter defaultValue="C:/BOC/tomcat7/logs/Monitoring.log">fileName</requiredParameter>
 		<requiredParameter defaultValue="\[metric:([^\]]+)\] \[value:([^\]]+)\]">pattern</requiredParameter>
 	</metric>	
 

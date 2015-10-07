@@ -40,17 +40,18 @@ public class TailerLogFileMonitorListener extends TailerListenerAdapter
    */
   private final String sCollectedMetric;
   
-  public TailerLogFileMonitorListener (final double dSamplingProb,
+  public TailerLogFileMonitorListener (final DCAgent aDcAgent,
+                                       final double dSamplingProb,
                                        final Pattern aRequestPattern,
                                        final String sMonitoringTarget,
                                        final String sCollectedMetric)
   {
     super ();
+    this.aDcAgent = aDcAgent;
     this.dSamplingProb = dSamplingProb;
     this.aRequestPattern = aRequestPattern;
     this.sMonitoredTarget = sMonitoringTarget;
     this.sCollectedMetric = sCollectedMetric;
-    // this.aDcAgent = DataCollectorAgent.getInstance ();
   }
   
   @Override
@@ -78,8 +79,8 @@ public class TailerLogFileMonitorListener extends TailerListenerAdapter
         this.aDcAgent.send (new InternalComponent (Config.getInstance ()
                                                          .getInternalComponentType (),
                                                    Config.getInstance ().getInternalComponentId ()),
-                            "BpmsMetric", //$NON-NLS-1$
-                            aSB);
+                            this.sCollectedMetric,
+                            aSB.toString ());
         LoggerFactory.getLogger (TailerLogFileMonitorListener.class)
                      .info ("sent value {} for metric BpmsMetric", aSB.toString ()); //$NON-NLS-1$
       }

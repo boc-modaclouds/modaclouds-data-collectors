@@ -83,48 +83,55 @@ public class TailerLogFileMonitor extends AbstractMonitor
     Tailer aTailer = null;
     while (!this.aThread.isInterrupted ())
     {
-      if (this.mode.equals ("kb")) //$NON-NLS-1$
+      if (this.mode.equals ("tower4clouds")) //$NON-NLS-1$
       {
         if (null == aTailer)
         {
-          if (null != aTailer)
-          {
-            aTailer.stop ();
-            aTailer = null;
-          }
           for (final String metric : getProvidedMetrics ())
           {
-            
             try
             {
-              if (this.aDcAgent.shouldMonitor (new InternalComponent (Config.getInstance ()
-                                                                            .getInternalComponentType (),
-                                                                      Config.getInstance ()
-                                                                            .getInternalComponentId ()),
-                                               metric))
+                final InternalComponent resource = new InternalComponent (
+                        Config.getInstance ().getInternalComponentType (),
+                        Config.getInstance ().getInternalComponentId ());
+                if (this.aDcAgent.shouldMonitor (resource, metric))
               {
                 
-                final Map <String, String> parameters = this.aDcAgent.getParameters (metric);
+                final Map <String, String> parameters = this.aDcAgent.getParameters (resource, metric);
                 this.sFileName = parameters.get ("fileName"); //$NON-NLS-1$
                 this.aRequestPattern = Pattern.compile (parameters.get ("pattern")); //$NON-NLS-1$
                 this.nPeriod = Integer.valueOf (parameters.get ("samplingTime")) * 1000; //$NON-NLS-1$
                 this.dSamplingProb = Double.valueOf (parameters.get ("samplingProbability"));
+                final TailerLogFileMonitorListener aListener = new TailerLogFileMonitorListener (this.aDcAgent,
+                                                                                                 this.dSamplingProb,
+                                                                                                 this.aRequestPattern,
+                                                                                                 this.sMonitoredTarget,
+                                                                                                 metric);
+                final File fl = new File (this.sFileName);
+                aTailer = Tailer.create (fl, aListener);
+                System.out.println ("Started Tailer for metric " + //$NON-NLS-1$
+                                    metric +
+                                    " with pattern " + //$NON-NLS-1$
+                                    this.aRequestPattern.toString ());
+                break;
               }
-              final TailerLogFileMonitorListener aListener = new TailerLogFileMonitorListener (this.dSamplingProb,
-                                                                                               this.aRequestPattern,
-                                                                                               this.sMonitoredTarget,
-                                                                                               metric);
-              aTailer = Tailer.create (new File (this.sFileName), aListener);
-              System.out.println ("Started Tailer for metric " + //$NON-NLS-1$
-                                  metric +
-                                  " with pattern " + //$NON-NLS-1$
-                                  this.aRequestPattern.toString ());
-              break;
             }
             catch (NumberFormatException | ConfigurationException e)
             {
               e.printStackTrace ();
             }
+          }
+        }
+        try
+        {
+          Thread.sleep (TailerLogFileMonitor.SLEEP);
+        }
+        catch (final InterruptedException ex)
+        {
+          // we were asked to terminate ...
+          if (null != aTailer)
+          {
+            aTailer.stop ();
           }
         }
       }
@@ -148,14 +155,14 @@ public class TailerLogFileMonitor extends AbstractMonitor
   private static Set <String> getProvidedMetrics ()
   {
     final Set <String> metrics = new HashSet <String> ();
-    metrics.add ("ResponseInfo"); //$NON-NLS-1$
+    metrics.add ("BpmsMetric"); //$NON-NLS-1$
     return metrics;
   }
   
   @Override
   public void start ()
   {
-    this.aThread = new Thread (this, "tailer-log-mon"); //$NON-NLS-1$
+    this.aThread = new Thread (this, "tailerLogFile"); //$NON-NLS-1$
   }
   
   @Override
@@ -181,4 +188,5 @@ public class TailerLogFileMonitor extends AbstractMonitor
     this.aDcAgent = aDcAgent;
     
   }
+  
 }
