@@ -46,7 +46,7 @@ public class TailerLogFileMonitorListener extends TailerListenerAdapter {
     @Override
     public void handle(final String sLine) {
         try {
-            log.info("got line: {}", sLine); //$NON-NLS-1$
+            log.debug("got line: {}", sLine); //$NON-NLS-1$
             Map<String, Pattern> aCurrentMetrics = new HashMap<String, Pattern>();
             synchronized (this) {
                 // create a deep copy in a threadsafe way
@@ -56,9 +56,9 @@ public class TailerLogFileMonitorListener extends TailerListenerAdapter {
                 final String sMetric = aMetric.getKey();
                 final Matcher aRequestMatcher = aMetric.getValue().matcher(sLine);
                 if (aRequestMatcher.find()) {
-                    log.info("got a match for metric {}", sMetric); //$NON-NLS-1$
+                    log.debug("got a match for metric {}", sMetric); //$NON-NLS-1$
                     final Float value = Float.valueOf(aRequestMatcher.group(1));
-                    log.info("extracted value {}", value); //$NON-NLS-1$
+                    log.debug("extracted value {}", value); //$NON-NLS-1$
                     this.aDcAgent.send(new InternalComponent(Config.getInstance()
                             .getInternalComponentType(),
                             Config.getInstance()
@@ -69,7 +69,7 @@ public class TailerLogFileMonitorListener extends TailerListenerAdapter {
                 }
             }
         } catch (final Exception ex) {
-            log.info("caught exception: ", ex); //$NON-NLS-1$
+            log.error("caught exception: ", ex); //$NON-NLS-1$
         }
     }
 

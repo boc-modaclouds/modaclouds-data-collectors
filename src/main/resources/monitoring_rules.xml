@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <mo:monitoringRules xmlns:mo="http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema">
   <mo:monitoringRule id="57d550f4-3cdd-4924-a2ad-d82f57a0d524" label="Monitor SOAP request duration" startEnabled="true" timeStep="5" timeWindow="5">
-    <mo:collectedMetric metricName="BpmsMetric">
+    <mo:collectedMetric metricName="BpmsMetricSoapRequestDuration">
       <mo:parameter name="samplingTime">10</mo:parameter>
       <mo:parameter name="samplingProbability">1</mo:parameter>
       <mo:parameter name="fileName">C:/BOC/tomcat7/logs/Monitoring.log</mo:parameter>
@@ -20,7 +20,7 @@
     </mo:actions>
   </mo:monitoringRule>
   <mo:monitoringRule id="07f2d112-bc69-43f7-87b3-5cf3ef012e92" label="Inbound request processing time" startEnabled="true" timeStep="5" timeWindow="5">
-    <mo:collectedMetric metricName="BpmsMetric">
+    <mo:collectedMetric metricName="BpmsMetricInboundRequestProcessingTime">
       <mo:parameter name="samplingTime">10</mo:parameter>
       <mo:parameter name="samplingProbability">1</mo:parameter>
       <mo:parameter name="fileName">C:/BOC/tomcat7/logs/Monitoring.log</mo:parameter>
@@ -39,7 +39,7 @@
     </mo:actions>
   </mo:monitoringRule>
   <mo:monitoringRule id="7dc39726-8227-4afd-a075-f4d4752ff4f7" label="Number of active threads" startEnabled="true" timeStep="5" timeWindow="5">
-    <mo:collectedMetric metricName="BpmsMetric">
+    <mo:collectedMetric metricName="BpmsMetricNumberOfActiveThreads">
       <mo:parameter name="samplingTime">10</mo:parameter>
       <mo:parameter name="samplingProbability">1</mo:parameter>
       <mo:parameter name="fileName">C:/BOC/tomcat7/logs/Monitoring.log</mo:parameter>
@@ -58,7 +58,7 @@
     </mo:actions>
   </mo:monitoringRule>
   <mo:monitoringRule id="75c3328f-3c3e-4a81-93f2-2854edc224dc" label="Memory usage in bytes" startEnabled="true" timeStep="5" timeWindow="5">
-    <mo:collectedMetric metricName="BpmsMetric">
+    <mo:collectedMetric metricName="BpmsMetricMemoryUsageInBytes">
       <mo:parameter name="samplingTime">10</mo:parameter>
       <mo:parameter name="samplingProbability">1</mo:parameter>
       <mo:parameter name="fileName">C:/BOC/tomcat7/logs/Monitoring.log</mo:parameter>
@@ -77,7 +77,7 @@
     </mo:actions>
   </mo:monitoringRule>
   <mo:monitoringRule id="025c12ab-1442-438d-bd62-e7570513b081" label="Logins per minute" startEnabled="true" timeStep="5" timeWindow="60">
-    <mo:collectedMetric metricName="BpmsMetric">
+    <mo:collectedMetric metricName="BpmsMetricLoginsPerMinute">
       <mo:parameter name="samplingTime">10</mo:parameter>
       <mo:parameter name="samplingProbability">1</mo:parameter>
       <mo:parameter name="fileName">C:/BOC/tomcat7/logs/Monitoring.log</mo:parameter>
@@ -96,7 +96,7 @@
     </mo:actions>
   </mo:monitoringRule>
   <mo:monitoringRule id="2c97d99d-2a2a-4e9a-8c0d-e29289ae26ce" label="User sessions" startEnabled="true" timeStep="5" timeWindow="5">
-    <mo:collectedMetric metricName="BpmsMetric">
+    <mo:collectedMetric metricName="BpmsMetricUserSessions">
       <mo:parameter name="samplingTime">10</mo:parameter>
       <mo:parameter name="samplingProbability">1</mo:parameter>
       <mo:parameter name="fileName">C:/BOC/tomcat7/logs/Monitoring.log</mo:parameter>

@@ -16,8 +16,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.input.Tailer;
@@ -53,7 +51,22 @@ public class TailerLogFileMonitor extends AbstractMonitor {
      */
     private String sLogFile;
 
+    /**
+     * Sleep time when we have nothing to do.
+     */
     private static final int SLEEP = 500;
+
+    /**
+     * Metrics covered by this monitor.
+     */
+    private static final String[] aMetricNames = new String[] {
+        "BpmsMetricSoapRequestDuration",
+        "BpmsMetricInboundRequestProcessingTime",
+        "BpmsMetricNumberOfActiveThreads",
+        "BpmsMetricMemoryUsageInBytes",
+        "BpmsMetricLoginsPerMinute",
+        "BpmsMetricUserSessions"
+    };
 
     /**
      * Constructor of the class.
@@ -74,15 +87,15 @@ public class TailerLogFileMonitor extends AbstractMonitor {
             if (this.mode.equals("tower4clouds")) //$NON-NLS-1$
             {
                 HashMap<String, Pattern> aMetrics = new HashMap<>();
-                for (final String metric : getProvidedMetrics()) {
+                for (final String sMetric : getProvidedMetrics()) {
                     try {
-                        final InternalComponent resource = new InternalComponent(
+                        final InternalComponent aResource = new InternalComponent(
                                 Config.getInstance().getInternalComponentType(),
                                 Config.getInstance().getInternalComponentId());
-                        if (this.aDcAgent.shouldMonitor(resource, metric)) {
+                        if (this.aDcAgent.shouldMonitor(aResource, sMetric)) {
 
-                            final Map<String, String> parameters = this.aDcAgent.getParameters(resource, metric);
-                            final String sFileName = parameters.get("fileName"); //$NON-NLS-1$
+                            final Map<String, String> aParameters = this.aDcAgent.getParameters(aResource, sMetric);
+                            final String sFileName = aParameters.get("fileName"); //$NON-NLS-1$
                             if (null == sLogFile) {
                                 sLogFile = sFileName;
                             }
@@ -90,11 +103,10 @@ public class TailerLogFileMonitor extends AbstractMonitor {
                                 aLog.error("TailerLogFileMonitor does not support multiple log files");
                                 return;
                             }
-                            final Pattern aRequestPattern = Pattern.compile(parameters.get("pattern")); //$NON-NLS-1$
-                            aMetrics.put(metric, aRequestPattern);
+                            final Pattern aRequestPattern = Pattern.compile(aParameters.get("pattern")); //$NON-NLS-1$
+                            aMetrics.put(sMetric, aRequestPattern);
                             aLog.info("Registering listener for metric {} with pattern {}", //$NON-NLS-1$
-                                    metric, aRequestPattern);
-                            break;
+                                    sMetric, aRequestPattern);
                         }
                     } catch (ConfigurationException ex) {
                         aLog.info("Exception while creating TailerLogFileMonitor", ex);
@@ -126,15 +138,18 @@ public class TailerLogFileMonitor extends AbstractMonitor {
             if (null != aTailer) {
                 aTailer.stop();
             }
-            Logger.getLogger(TailerLogFileMonitor.class.getName()).log(Level.SEVERE, null, ex);
+            aLog.info("shutting down {}", this.getClass().getName());
         }
 
     }
 
     private static Set<String> getProvidedMetrics() {
-        final Set<String> metrics = new HashSet<>();
-        metrics.add("BpmsMetric"); //$NON-NLS-1$
-        return metrics;
+        // TODO: replace heard coded metrics with config file
+        final Set<String> aMetrics = new HashSet<>();
+        for (final String sMetric : aMetricNames) {
+            aMetrics.add(sMetric); //$NON-NLS-1$
+        }
+        return aMetrics;
     }
 
     @Override
@@ -145,7 +160,7 @@ public class TailerLogFileMonitor extends AbstractMonitor {
     @Override
     public void init() {
         this.aThread.start();
-        System.out.println("Tailer log file monitor running!"); //$NON-NLS-1$
+        aLog.info("Tailer log file monitor running!"); //$NON-NLS-1$
     }
 
     @Override
@@ -153,13 +168,11 @@ public class TailerLogFileMonitor extends AbstractMonitor {
         while (!this.aThread.isInterrupted()) {
             this.aThread.interrupt();
         }
-        System.out.println("Tailer log file monitor stopped!"); //$NON-NLS-1$
+        aLog.info("Tailer log file monitor stopped!"); //$NON-NLS-1$
     }
 
     @Override
-    public void setDCAgent(final DCAgent aDcAgent) {
+    public void setDCAgent(DCAgent aDcAgent) {
         this.aDcAgent = aDcAgent;
-
     }
-
 }

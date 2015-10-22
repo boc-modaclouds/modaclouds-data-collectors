@@ -425,8 +425,13 @@ public class ModacloudsMonitor implements Observer {
         metrics.add("ResponseInfo");
         metrics.add("AppAvailable");
         metrics.add("LogFile");
-        metrics.add("BpmsMetric");
-
+        metrics.add("BpmsMetricSoapRequestDuration");
+        metrics.add("BpmsMetricInboundRequestProcessingTime");
+        metrics.add("BpmsMetricNumberOfActiveThreads");
+        metrics.add("BpmsMetricMemoryUsageInBytes");
+        metrics.add("BpmsMetricLoginsPerMinute");
+        metrics.add("BpmsMetricUserSessions");
+        // TODO: get the BPMS metrics from a conf file at runtime
         return metrics;
     }
 
@@ -526,7 +531,13 @@ public class ModacloudsMonitor implements Observer {
             this.metricCollectorMapping.put("appavailable", "appavailability");
             this.metricCollectorMapping.put("flexi", "flexi");
             this.metricCollectorMapping.put("haproxylog", "haproxy");
-            this.metricCollectorMapping.put("bpmsmetric", "tailerLogFile");
+            this.metricCollectorMapping.put("bpmsmetricsoaprequestduration", "tailerLogFile");
+            this.metricCollectorMapping.put("bpmsmetricinboundrequestprocessingtime", "tailerLogFile");
+            this.metricCollectorMapping.put("bpmsmetricnumberofactivethreads", "tailerLogFile");
+            this.metricCollectorMapping.put("bpmsmetricmemoryusageinbytes", "tailerLogFile");
+            this.metricCollectorMapping.put("bpmsmetricloginsperminute", "tailerLogFile");
+            this.metricCollectorMapping.put("bpmsmetricusersessions", "tailerLogFile");
+            // TODO: get the bpms metrics from a conf file at runtime
         }
 
         String collector;

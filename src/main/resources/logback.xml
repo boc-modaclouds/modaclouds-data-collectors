@@ -9,6 +9,7 @@
 
 	<logger name="it.polimi" level="DEBUG" />
 	<logger name="imperial" level="DEBUG" />
+	<logger name="com.boc_eu" level="INFO" />
 
 	<root level="WARN">
 		<appender-ref ref="STDERR" />
