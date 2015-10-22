@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.input.TailerListenerAdapter;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -18,7 +19,11 @@ import org.slf4j.LoggerFactory;
  */
 public class TailerLogFileMonitorListener extends TailerListenerAdapter
 {
-  
+  /**
+   * The logger for our class.
+   */
+  private static final Logger log = LoggerFactory.getLogger(TailerLogFileMonitor.class);
+    
   /**
    * Agent fof communicating with the rest of the platform.
    */
@@ -59,35 +64,24 @@ public class TailerLogFileMonitorListener extends TailerListenerAdapter
   {
     try
     {
-      LoggerFactory.getLogger (TailerLogFileMonitorListener.class).info ("got line: {}", sLine); //$NON-NLS-1$
+      log.info ("got line: {}", sLine); //$NON-NLS-1$
       final Matcher aRequestMatcher = this.aRequestPattern.matcher (sLine);
       if (aRequestMatcher.find ())
       {
-        LoggerFactory.getLogger (TailerLogFileMonitorListener.class)
-                     .info ("got a match for metric {}", this.sCollectedMetric); //$NON-NLS-1$
-        final StringBuilder aSB = new StringBuilder ();
-        for (int i = 1; i <= aRequestMatcher.groupCount (); i++)
-        {
-          aSB.append (aRequestMatcher.group (i));
-          if (i != aRequestMatcher.groupCount ())
-          {
-            aSB.append (", "); //$NON-NLS-1$
-          }
-        }
-        LoggerFactory.getLogger (TailerLogFileMonitorListener.class).info ("extracted value {}", //$NON-NLS-1$
-                                                                           aSB.toString ());
+        log.info ("got a match for metric {}", this.sCollectedMetric); //$NON-NLS-1$
+        final Float value = Float.valueOf(aRequestMatcher.group(1));
+        log.info ("extracted value {}", value); //$NON-NLS-1$
         this.aDcAgent.send (new InternalComponent (Config.getInstance ()
                                                          .getInternalComponentType (),
                                                    Config.getInstance ().getInternalComponentId ()),
                             this.sCollectedMetric,
-                            aSB.toString ());
-        LoggerFactory.getLogger (TailerLogFileMonitorListener.class)
-                     .info ("sent value {} for metric BpmsMetric", aSB.toString ()); //$NON-NLS-1$
+                            value);                            
+        log.info ("sent value {} for metric BpmsMetric", value); //$NON-NLS-1$
       }
     }
     catch (final Exception ex)
     {
-      LoggerFactory.getLogger (TailerLogFileMonitorListener.class).info ("caught exception: ", ex); //$NON-NLS-1$
+      log.info ("caught exception: ", ex); //$NON-NLS-1$
     }
   }
   
