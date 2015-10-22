@@ -20,7 +20,7 @@ public class Config {
 
   private static final String DEFAULT_MM_IP = "109.231.126.51";
   private static final String DEFAULT_MM_PORT = "8170";
-  private static final String DEFAULT_INTERNAL_COMPONENT_ID = "test";
+  private static final String DEFAULT_INTERNAL_COMPONENT_ID = "ADONIScloud";
   
   public static Config getInstance () throws ConfigurationException {
     if (_instance == null) {
