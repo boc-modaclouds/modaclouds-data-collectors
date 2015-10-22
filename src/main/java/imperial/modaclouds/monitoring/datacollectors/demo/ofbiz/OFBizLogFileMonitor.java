@@ -1,20 +1,20 @@
 /**
- * Copyright ${year} imperial
- * Contact: imperial <weikun.wang11@imperial.ac.uk>
+ * Copyright ${year} imperial Contact: imperial <weikun.wang11@imperial.ac.uk>
  *
- *    Licensed under the BSD 3-Clause License (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * Licensed under the BSD 3-Clause License (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the
+ * License at
  *
- *        http://opensource.org/licenses/BSD-3-Clause
+ * http://opensource.org/licenses/BSD-3-Clause
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 package imperial.modaclouds.monitoring.datacollectors.demo.ofbiz;
+
 import imperial.modaclouds.monitoring.datacollectors.basic.AbstractMonitor;
 import imperial.modaclouds.monitoring.datacollectors.basic.Config;
 import imperial.modaclouds.monitoring.datacollectors.basic.ConfigurationException;
@@ -53,332 +53,328 @@ import org.xml.sax.SAXException;
 /**
  * Response time monitor.
  */
-public class OFBizLogFileMonitor extends AbstractMonitor{
+public class OFBizLogFileMonitor extends AbstractMonitor {
 
-	private Logger logger = LoggerFactory.getLogger(OFBizLogFileMonitor.class);
+    private Logger logger = LoggerFactory.getLogger(OFBizLogFileMonitor.class);
 
-	/**
-	 * Extract the request information according the regular expression.
-	 */
-	private static Pattern requestPattern;
+    /**
+     * Extract the request information according the regular expression.
+     */
+    private static Pattern requestPattern;
 
-	/**
-	 * Log file name.
-	 */
-	private String fileName;
+    /**
+     * Log file name.
+     */
+    private String fileName;
 
-	/**
-	 * Response time monitor thread.
-	 */
-	private Thread olmt;
+    /**
+     * Response time monitor thread.
+     */
+    private Thread olmt;
 
-	/**
-	 * Pattern to match.
-	 */
-	private String pattern;
+    /**
+     * Pattern to match.
+     */
+    private String pattern;
 
-	/**
-	 * Monitoring period.
-	 */
-	private int period;
+    /**
+     * Monitoring period.
+     */
+    private int period;
 
+    /**
+     * The unique monitored target.
+     */
+    private String monitoredTarget;
 
-	/**
-	 * The unique monitored target.
-	 */
-	private String monitoredTarget;
+    /**
+     * The sampling probability.
+     */
+    private double samplingProb;
 
-	/**
-	 * The sampling probability.
-	 */
-	private double samplingProb;
+    private DCAgent dcAgent;
 
-	private DCAgent dcAgent;
-
-	/**
-	 * Constructor of the class.
-	 * @throws MalformedURLException 
-	 * @throws FileNotFoundException 
-	 */
-	public OFBizLogFileMonitor (String resourceId, String mode ) {
+    /**
+     * Constructor of the class.
+     *
+     * @throws MalformedURLException
+     * @throws FileNotFoundException
+     */
+    public OFBizLogFileMonitor(String resourceId, String mode) {
 		//this.monitoredResourceID = "FrontendVM";
-		//this.monitoredTarget = monitoredResourceID;
+        //this.monitoredTarget = monitoredResourceID;
 
-		super(resourceId, mode);
+        super(resourceId, mode);
 
-		monitoredTarget = resourceId;
+        monitoredTarget = resourceId;
 
-		monitorName = "ofbiz";
-	}
+        monitorName = "ofbiz";
+    }
 
-	/**
-	 * Analyze file to extract information.
-	 */
-	private void analyseFile(File file) throws IOException, ParseException {
-		if (!file.exists())
-			return;
+    /**
+     * Analyze file to extract information.
+     */
+    private void analyseFile(File file) throws IOException, ParseException {
+        if (!file.exists()) {
+            return;
+        }
 
-		FileInputStream input = new FileInputStream(file);
-		BufferedReader br = new BufferedReader(new InputStreamReader(input));
+        FileInputStream input = new FileInputStream(file);
+        BufferedReader br = new BufferedReader(new InputStreamReader(input));
 
-		String line;
-		while ((line = br.readLine()) != null) {
-			Matcher requestMatcher = requestPattern.matcher(line);
-			String requestType = null;
-			String responseTime = null;
-			while (requestMatcher.find()) {
-				String temp = "";
-				for (int i = 1; i <= requestMatcher.groupCount(); i++) {
-					temp = temp + requestMatcher.group(i);
-					if (i != requestMatcher.groupCount())
-						temp = temp + ",";
-					if (i == requestMatcher.groupCount() - 2)
-						requestType = requestMatcher.group(i);
-					if (i == requestMatcher.groupCount())
-						responseTime = requestMatcher.group(i);
-				}
+        String line;
+        while ((line = br.readLine()) != null) {
+            Matcher requestMatcher = requestPattern.matcher(line);
+            String requestType = null;
+            String responseTime = null;
+            while (requestMatcher.find()) {
+                String temp = "";
+                for (int i = 1; i <= requestMatcher.groupCount(); i++) {
+                    temp = temp + requestMatcher.group(i);
+                    if (i != requestMatcher.groupCount()) {
+                        temp = temp + ",";
+                    }
+                    if (i == requestMatcher.groupCount() - 2) {
+                        requestType = requestMatcher.group(i);
+                    }
+                    if (i == requestMatcher.groupCount()) {
+                        responseTime = requestMatcher.group(i);
+                    }
+                }
 
 				//				Resource requestedOperation = null;
-				//				switch(requestType) {
-				//					case "getAssociatedStateList":
-				//						requestedOperation = MC.getAssociatedStateList;
-				//						break;
-				//					case "newcustomer":
-				//						requestedOperation = MC.newcustomer;
-				//						break;
-				//					case "main":
-				//						requestedOperation = MC.main;
-				//						break;
-				//					case "createcustomer":
-				//						requestedOperation = MC.createcustomer;
-				//						break;
-				//					case "processorder":
-				//						requestedOperation = MC.processorder;
-				//						break;
-				//					case "logout":
-				//						requestedOperation = MC.logout;
-				//						break;
-				//					case "checkLogin":
-				//						requestedOperation = MC.checkLogin;
-				//						break;
-				//					case "login":
-				//						requestedOperation = MC.login;
-				//						break;
-				//					case "quickadd":
-				//						requestedOperation = MC.quickadd;
-				//						break;
-				//					case "addtocartbulk":
-				//						requestedOperation = MC.addtocartbulk;
-				//						break;
-				//					case "checkoutoptions":
-				//						requestedOperation = MC.checkoutoptions;
-				//						break;
-				//					case "orderhistory":
-				//						requestedOperation = MC.orderhistory;
-				//						break;
-				//					case "orderstatus":
-				//						requestedOperation = MC.orderstatus;
-				//						break;
-				//				}
-
+                //				switch(requestType) {
+                //					case "getAssociatedStateList":
+                //						requestedOperation = MC.getAssociatedStateList;
+                //						break;
+                //					case "newcustomer":
+                //						requestedOperation = MC.newcustomer;
+                //						break;
+                //					case "main":
+                //						requestedOperation = MC.main;
+                //						break;
+                //					case "createcustomer":
+                //						requestedOperation = MC.createcustomer;
+                //						break;
+                //					case "processorder":
+                //						requestedOperation = MC.processorder;
+                //						break;
+                //					case "logout":
+                //						requestedOperation = MC.logout;
+                //						break;
+                //					case "checkLogin":
+                //						requestedOperation = MC.checkLogin;
+                //						break;
+                //					case "login":
+                //						requestedOperation = MC.login;
+                //						break;
+                //					case "quickadd":
+                //						requestedOperation = MC.quickadd;
+                //						break;
+                //					case "addtocartbulk":
+                //						requestedOperation = MC.addtocartbulk;
+                //						break;
+                //					case "checkoutoptions":
+                //						requestedOperation = MC.checkoutoptions;
+                //						break;
+                //					case "orderhistory":
+                //						requestedOperation = MC.orderhistory;
+                //						break;
+                //					case "orderstatus":
+                //						requestedOperation = MC.orderstatus;
+                //						break;
+                //				}
 				//				String streamIri = "http://ec2-54-216-144-180.eu-west-1.compute.amazonaws.com:8175/streams/dc2sda";
-				//				Model m = ModelFactory.createDefaultModel();
-				//				m.add(new ResourceImpl(streamIri+"/"+String.valueOf(System.currentTimeMillis())), new PropertyImpl(streamIri+"/ResponseInfo"), new ResourceImpl(streamIri+"/"+temp));
-				//				
-				//				try {
-				//					csparql_api.feedStream("http://ec2-54-216-144-180.eu-west-1.compute.amazonaws.com:8175/streams/dc2sda", m);
-				//				} catch (StreamErrorException | ServerErrorException e) {
-				//					e.printStackTrace();
-				//				}
-
+                //				Model m = ModelFactory.createDefaultModel();
+                //				m.add(new ResourceImpl(streamIri+"/"+String.valueOf(System.currentTimeMillis())), new PropertyImpl(streamIri+"/ResponseInfo"), new ResourceImpl(streamIri+"/"+temp));
+                //				
+                //				try {
+                //					csparql_api.feedStream("http://ec2-54-216-144-180.eu-west-1.compute.amazonaws.com:8175/streams/dc2sda", m);
+                //				} catch (StreamErrorException | ServerErrorException e) {
+                //					e.printStackTrace();
+                //				}
 				//				String urlToRequestedOperation = monitoredResourceURL + "/" + requestedOperation.getLocalName();
-				//				Request request = DDAFactory.createRequest(urlToRequestedOperation, requestedOperation);
-				//				
-				//				try {
-				//						sendEvent(MC.SuccessfulRequestEvent, request);
-				//				} catch (ConnectionErrorException e) {
-				//					System.err.println("Failed to deliver event: "
-				//							+ e.getMessage());
-				//				}
+                //				Request request = DDAFactory.createRequest(urlToRequestedOperation, requestedOperation);
+                //				
+                //				try {
+                //						sendEvent(MC.SuccessfulRequestEvent, request);
+                //				} catch (ConnectionErrorException e) {
+                //					System.err.println("Failed to deliver event: "
+                //							+ e.getMessage());
+                //				}
+                try {
+                    if (Math.random() < samplingProb) {
+                        logger.info("Sending datum: {} {} {}", temp, "ResponseInfo", monitoredTarget);
+                        dcAgent.send(new InternalComponent(Config.getInstance().getInternalComponentType(),
+                                Config.getInstance().getInternalComponentId()), "ResponseInfo", temp);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        br.close();
+        input.close();
+    }
 
-				try {
-					if (Math.random() < samplingProb) {
-						logger.info("Sending datum: {} {} {}",temp, "ResponseInfo", monitoredTarget);
-						dcAgent.send(new InternalComponent(Config.getInstance().getInternalComponentType(),
-								Config.getInstance().getInternalComponentId()), "ResponseInfo",temp);
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}		
-		}	
-		br.close();
-		input.close();
-	}
+    @Override
+    public void run() {
+        long startTime = 0;
 
-	@Override
-	public void run() {
-		long startTime = 0;
+        while (!olmt.isInterrupted()) {
 
-		while (!olmt.isInterrupted()) {
+            if (mode.equals("tower4clouds")) {
 
-			if (mode.equals("tower4clouds")) {
+                if (System.currentTimeMillis() - startTime > 60000) {
 
-				if (System.currentTimeMillis() - startTime > 60000) {
+                    for (String metric : getProvidedMetrics()) {
 
-					for (String metric : getProvidedMetrics()) {
+                        try {
+                            InternalComponent resource = new InternalComponent(Config.getInstance().getInternalComponentType(),
+                                    Config.getInstance().getInternalComponentId());
+                            if (dcAgent.shouldMonitor(resource, metric)) {
 
-						try {
-							InternalComponent resource = new InternalComponent(Config.getInstance().getInternalComponentType(),
-									Config.getInstance().getInternalComponentId());
-							if (dcAgent.shouldMonitor(resource, metric)) {
+                                Map<String, String> parameters = dcAgent.getParameters(resource, metric);
 
-								Map<String, String> parameters = dcAgent.getParameters(resource, metric);
+                                fileName = parameters.get("logFileName");
+                                pattern = parameters.get("pattern");
+                                period = Integer.valueOf(parameters.get("samplingTime"));
+                                samplingProb = Double.valueOf(parameters.get("samplingProbability"));
 
-								fileName = parameters.get("logFileName");
-								pattern = parameters.get("pattern");
-								period = Integer.valueOf(parameters.get("samplingTime"));
-								samplingProb = Double.valueOf(parameters.get("samplingProbability"));
+                                if (pattern == null) {
+                                    pattern = "(19|20\\d{2})-(0?[1-9]|1[012])-(0?[1-9]|[12]\\d|3[01]) ([01]?\\d|2[0-3]):([0-5]\\d):([0-5]\\d),(\\d{3}).*\\((http.+?)\\).*\\[\\[\\[(.+?)\\(Domain.*(Request Done).*total:(.*),";
+                                }
+                            }
+                        } catch (NumberFormatException | ConfigurationException e) {
+                            e.printStackTrace();
+                        }
+                    }
 
+                    startTime = System.currentTimeMillis();
+                }
+            } else {
+                String folder = null;
+                try {
+                    folder = new File(".").getCanonicalPath();
+                } catch (IOException e2) {
+                    e2.printStackTrace();
+                }
+                File file_xml = new File(folder + "/config/configuration_LogFileParser.xml");
 
-								if (pattern == null) {
-									pattern = "(19|20\\d{2})-(0?[1-9]|1[012])-(0?[1-9]|[12]\\d|3[01]) ([01]?\\d|2[0-3]):([0-5]\\d):([0-5]\\d),(\\d{3}).*\\((http.+?)\\).*\\[\\[\\[(.+?)\\(Domain.*(Request Done).*total:(.*),";
-								}
-							}
-						} catch (NumberFormatException | ConfigurationException e) {
-							e.printStackTrace();
-						}
-					}
+                DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder dBuilder;
+                try {
+                    dBuilder = dbFactory.newDocumentBuilder();
 
-					startTime = System.currentTimeMillis();
-				}
-			}
-			else {
-				String folder = null;
-				try {
-					folder = new File(".").getCanonicalPath();
-				} catch (IOException e2) {
-					e2.printStackTrace();
-				}
-				File file_xml = new File(folder+"/config/configuration_LogFileParser.xml");
+                    Document doc = dBuilder.parse(file_xml);
 
-				DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-				DocumentBuilder dBuilder;
-				try {
-					dBuilder = dbFactory.newDocumentBuilder();
+                    doc.getDocumentElement().normalize();
 
-					Document doc = dBuilder.parse(file_xml);
+                    NodeList nList = doc.getElementsByTagName("OFBizLogFile");
+                    for (int i = 0; i < nList.getLength(); i++) {
 
-					doc.getDocumentElement().normalize();
+                        Node nNode = nList.item(i);
 
-					NodeList nList = doc.getElementsByTagName("OFBizLogFile");
-					for (int i = 0; i < nList.getLength(); i++) {
+                        if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 
-						Node nNode = nList.item(i);
+                            Element eElement = (Element) nNode;
 
-						if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                            fileName = eElement.getElementsByTagName("LogFileName").item(0).getTextContent();
+                            pattern = eElement.getElementsByTagName("Pattern").item(0).getTextContent();
+                            period = Integer.valueOf(eElement.getElementsByTagName("monitorPeriod").item(0).getTextContent());
+                            samplingProb = 1;
+                        }
+                    }
+                } catch (ParserConfigurationException e1) {
+                    e1.printStackTrace();
+                } catch (SAXException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
 
-							Element eElement = (Element) nNode;
+            requestPattern = Pattern.compile(pattern);
 
-							fileName = eElement.getElementsByTagName("LogFileName").item(0).getTextContent();
-							pattern = eElement.getElementsByTagName("Pattern").item(0).getTextContent();
-							period = Integer.valueOf(eElement.getElementsByTagName("monitorPeriod").item(0).getTextContent());
-							samplingProb = 1;
-						}
-					}
-				} catch (ParserConfigurationException e1) {
-					e1.printStackTrace();
-				} catch (SAXException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}		
-			}
+            final File file = new File(fileName);
 
-			requestPattern = Pattern.compile(pattern);
+            String absolutePath = file.getAbsolutePath();
+            File dir = new File(absolutePath.substring(0, absolutePath.lastIndexOf(File.separator)));
+            File[] files = null;
 
-			final File file = new File(fileName);
+            try {
+                Long t0 = System.currentTimeMillis();
 
-			String absolutePath = file.getAbsolutePath();
-			File dir = new File(absolutePath.substring(0, absolutePath.lastIndexOf(File.separator)));
-			File[] files = null;
+                files = dir.listFiles(new FilenameFilter() {
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        return name.startsWith(file.getName() + ".");
+                    }
+                });
 
+                if (files.length == 0) {
+                    Long t1 = System.currentTimeMillis();
+                    try {
+                        Thread.sleep(Math.max(period - (t1 - t0), 0));
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    continue;
+                }
 
+                Arrays.sort(files, Collections.reverseOrder());
+                for (int i = 0; i < files.length; i++) {
+                    analyseFile(files[i]);
+                    if (files[i].delete()) {
+                        System.out.println(files[i].getName() + " is deleted!");
+                    } else {
+                        System.out.println("Delete operation is failed.");
+                    }
+                }
 
-			try {	
-				Long t0 = System.currentTimeMillis();
+                Long t1 = System.currentTimeMillis();
+                try {
+                    Thread.sleep(Math.max(period - (t1 - t0), 0));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
 
-				files = dir.listFiles(new FilenameFilter() {
-					@Override
-					public boolean accept(File dir, String name) {
-						return name.startsWith(file.getName()+".");
-					}
-				});
+    }
 
-				if (files.length == 0) {
-					Long t1 = System.currentTimeMillis();
-					try {
-						Thread.sleep(Math.max( period - (t1 - t0), 0));
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					continue;
-				}
+    private Set<String> getProvidedMetrics() {
+        Set<String> metrics = new HashSet<String>();
+        metrics.add("ResponseInfo");
+        return metrics;
+    }
 
-				Arrays.sort(files, Collections.reverseOrder());
-				for (int i = 0; i < files.length; i++) {
-					analyseFile(files[i]);
-					if(files[i].delete()){
-						System.out.println(files[i].getName() + " is deleted!");
-					}else{
-						System.out.println("Delete operation is failed.");
-					}
-				}
+    @Override
+    public void start() {
+        olmt = new Thread(this, "olm-mon");
+    }
 
-				Long t1 = System.currentTimeMillis();
-				try {
-					Thread.sleep(Math.max( period - (t1 - t0), 0));
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
-		}
+    @Override
+    public void init() {
+        olmt.start();
+        System.out.println("OFBiz monitor running!");
+    }
 
-	} 
+    @Override
+    public void stop() {
+        while (!olmt.isInterrupted()) {
+            olmt.interrupt();
+        }
 
-	private Set<String> getProvidedMetrics() {
-		Set<String> metrics = new HashSet<String>();
-		metrics.add("ResponseInfo");
-		return metrics;
-	}
+        System.out.println("OFBiz monitor stopped!");
+    }
 
-
-	@Override
-	public void start() {
-		olmt = new Thread( this, "olm-mon");
-	}
-
-	@Override
-	public void init() {
-		olmt.start();
-		System.out.println("OFBiz monitor running!");
-	}
-
-	@Override
-	public void stop() {	
-		while (!olmt.isInterrupted()) {
-			olmt.interrupt();
-		}
-
-		System.out.println("OFBiz monitor stopped!");
-	}
-
-	@Override
-	public void setDCAgent(DCAgent dcAgent) {
-		this.dcAgent = dcAgent;		
-	}
+    @Override
+    public void setDCAgent(DCAgent dcAgent) {
+        this.dcAgent = dcAgent;
+    }
 }
